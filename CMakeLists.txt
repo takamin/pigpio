@@ -24,3 +24,6 @@ target_link_libraries(gpioOut8Bit pigpio)
 
 add_executable(gpioReadButton sample/gpioReadButton.cpp)
 target_link_libraries(gpioReadButton pigpio)
+
+add_executable(pedsignal pedsignal/main.c)
+target_link_libraries(pedsignal pigpio)

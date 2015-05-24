@@ -5,20 +5,38 @@
 #include <unistd.h>
 
 #include "gpio.h"
-int main ()
+int main (int argc, char* argv[])
 {
-    gpio_init();                        //  オマジナイ
-    gpio_configure(25, GPIO_INPUT);     //  GPIO_25 を出力に設定
-    gpio_configure_pull(25, GPIO_PULLUP);   //  プルアップ抵抗を有効化
-    gpio_configure(18, GPIO_INPUT);     //  GPIO_18 を出力に設定
-    gpio_configure_pull(18, GPIO_PULLDOWN); //  プルダウン抵抗を有効化
+	int port;
+	int pullup;
+	int value;
+
+    gpio_init();
+	if(argc < 1) {
+		fprintf(stderr, "read_gpio <port> [<pullup>=1]\n");
+		exit(-1);
+	}
+	port = atoi(argv[1]);
+	if(port < 0 || 31 < port) {
+		fprintf(stderr, "error: port range 0 .. 31\n");
+		exit(-1);
+	}
+	if(argc > 2) {
+		pullup = atoi(argv[2]);
+		if(pullup != 0 && pullup != 1) {
+			fprintf(stderr,
+				"ERROR: invalid pullup (%d), 0 or 1 is available.\n", pullup);
+			exit(-1);
+		}
+	} else {
+		pullup = 1;
+	}
+	gpio_configure(port, GPIO_INPUT);
+	gpio_configure_pull(port, (pullup ? GPIO_PULLUP : GPIO_PULLDOWN));
     while (1) {
-        int val;
-        val = gpio_read(25);            //  ピン電圧を読み込む
-        printf("input(25): %d\n", val); //  0/1 をプリント
-        val = gpio_read(18);            //  ピン電圧を読み込む
-        printf("input(18): %d\n", val); //  0/1 をプリント
-        usleep(500000);                 //  0.5秒待ち
+        value = gpio_read(port);
+        printf("input(%d): %d\n", port, value);
+        usleep(500000); // 0.5[s]
     }
     return 0;
 }
