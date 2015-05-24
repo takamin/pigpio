@@ -1,53 +1,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "Gpio.hpp"
-class GpioByteDisplay : public RaspiGpio {
-public:
-	void init_ports();
-	void write_byte(unsigned char value);
-private: 
-	static int pins[];
-};
-
+#include "gpio.h"
 int main (int argc, char* argv[])
 {
-	GpioByteDisplay gpio;
-	gpio.init_ports();
-	int n = 0;
-	int fixed_bit_pattern = -1;	
-	int wait_microsec = 100000;
+	int port;
+	int value;
 
-	if(argc > 1) {
-		int x = atoi(argv[1]);
-		if(x < 256) {
-			fixed_bit_pattern = (int)((unsigned)x)&0xff;
-		} else {
-			wait_microsec = x;
-		}
+	gpio_init();
+	if(argc < 2) {
+		fprintf(stderr, "write_gpio <port> <value 0/1>\n");
+		exit(-1);
 	}
-	if(fixed_bit_pattern < 0) {
-		int n = 0;
-		while (1) {
-			gpio.write_byte((unsigned char)n);	
-			n = ++n % 256;	
-			usleep(wait_microsec);
-		}
+	port = atoi(argv[1]);
+	if(port < 0 || 31 < port) {
+		fprintf(stderr, "error: port range 0 .. 31\n");
+		exit(-1);
+	}
+	value = atoi(argv[2]);
+	if(value != 0 && value != 1) {
+		value = (value ? 1:0);
+		fprintf(stderr, "WARNING: reset value to %d\n", value);
+	}
+	gpio_configure(port, GPIO_OUTPUT);
+	fprintf(stderr, "output %d to port %d\n", value, port);
+	if(value != 0) {
+		gpio_set(port);
 	} else {
-		gpio.write_byte((unsigned char)fixed_bit_pattern);	
+		gpio_clear(port);
 	}
     return 0;
-}
-
-int GpioByteDisplay::pins[] = {14,3,4,7,8,9,10,11,};
-void GpioByteDisplay::init_ports() {
-	for(int i = 0; i < sizeof(pins)/sizeof(pins[0]); i++) {
-		(*this)[pins[i]].setMode(GPIO_OUTPUT);
-	}
-}
-
-void GpioByteDisplay::write_byte(unsigned char value) {
-	for(int i = 0; i < sizeof(pins)/sizeof(pins[0]); i++) {
-		(*this)[pins[i]] = ((value & (1 << i)) != 0);
-	}
 }
