@@ -19,50 +19,31 @@
  */
 #include <unistd.h>
 #include "gpio.h"
-
-#define LIGHT_CAR_BLUE 2
-#define LIGHT_CAR_YELLOW 3
-#define LIGHT_CAR_RED 4
-#define LIGHT_PED_WALK 14
-#define LIGHT_PED_STOP 15
-#define DISP_PED_PUSH 17
-#define DISP_PED_WAIT 18
-#define PED_BUTTON 27
+#include "gpio_port.h"
 
 int main(int argc, char* argv[])
 {
 	gpio_init();
 
-	gpio_configure(LIGHT_CAR_BLUE, GPIO_OUTPUT);
-	gpio_configure(LIGHT_CAR_YELLOW, GPIO_OUTPUT);
-	gpio_configure(LIGHT_CAR_RED, GPIO_OUTPUT);
-	gpio_configure(LIGHT_PED_WALK, GPIO_OUTPUT);
-	gpio_configure(LIGHT_PED_STOP, GPIO_OUTPUT);
-	gpio_configure(DISP_PED_PUSH, GPIO_OUTPUT);
-	gpio_configure(DISP_PED_WAIT, GPIO_OUTPUT);
-	gpio_configure(PED_BUTTON, GPIO_INPUT);
-	gpio_configure_pull(PED_BUTTON, GPIO_PULLUP);
+	GPIO_PORT* GPIO_LIGHT_CAR_BLUE = gpio_port_output(2);
+	GPIO_PORT* GPIO_LIGHT_CAR_YELLOW = gpio_port_output(3);
+	GPIO_PORT* GPIO_LIGHT_CAR_RED = gpio_port_output(4);
+	GPIO_PORT* GPIO_LIGHT_PED_WALK = gpio_port_output(14);
+	GPIO_PORT* GPIO_LIGHT_PED_STOP = gpio_port_output(15);
+	GPIO_PORT* GPIO_DISP_PED_PUSH = gpio_port_output(17);
+	GPIO_PORT* GPIO_DISP_PED_WAIT = gpio_port_output(18);
+	GPIO_PORT* GPIO_PED_BUTTON = gpio_port_input_pullup(27);
 	
 	while(1) {
-		int button_state = gpio_read(PED_BUTTON);
+		int button_state = gpio_port_read(GPIO_PED_BUTTON);
 		int test_output = (button_state == 0 ? 1 : 0);
-		if(test_output) {
-			gpio_set(LIGHT_CAR_BLUE);
-			gpio_set(LIGHT_CAR_YELLOW);
-			gpio_set(LIGHT_CAR_RED);
-			gpio_set(LIGHT_PED_WALK);
-			gpio_set(LIGHT_PED_STOP);
-			gpio_set(DISP_PED_PUSH);
-			gpio_set(DISP_PED_WAIT);
-		} else {
-			gpio_clear(LIGHT_CAR_BLUE);
-			gpio_clear(LIGHT_CAR_YELLOW);
-			gpio_clear(LIGHT_CAR_RED);
-			gpio_clear(LIGHT_PED_WALK);
-			gpio_clear(LIGHT_PED_STOP);
-			gpio_clear(DISP_PED_PUSH);
-			gpio_clear(DISP_PED_WAIT);
-		}
+		gpio_port_write(GPIO_LIGHT_CAR_BLUE, test_output);
+		gpio_port_write(GPIO_LIGHT_CAR_YELLOW, test_output);
+		gpio_port_write(GPIO_LIGHT_CAR_RED, test_output);
+		gpio_port_write(GPIO_LIGHT_PED_WALK, test_output);
+		gpio_port_write(GPIO_LIGHT_PED_STOP, test_output);
+		gpio_port_write(GPIO_DISP_PED_PUSH, test_output);
+		gpio_port_write(GPIO_DISP_PED_WAIT, test_output);
 		usleep(10000);
 	}
 	return 0;

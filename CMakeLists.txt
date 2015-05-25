@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(pigpio)
 set(CMAKE_C_FLAGS -pthread)
 set(CMAKE_EXE_LINKER_FLAGS -pthread)
-set(LIBSRC src/gpio.c src/Gpio.cpp)
+set(LIBSRC
+	src/gpio.c
+	src/gpio_port.c
+	src/Gpio.cpp)
 
 include_directories( . src )
 add_library(pigpio ${LIBSRC})
