@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#ifndef __MINGW32__
 #include <sys/mman.h>
+#else
+#include <mingw-mman/mman.h>
+#define O_SYNC 0
+#endif
 #include <unistd.h>
 #include "Gpio.hpp"
 GpioPin::GpioPin()
@@ -17,11 +22,7 @@ void GpioPin::setPinNo(int pin_no) {
 void GpioPin::setMode(int mode, int pullMode/* =GPIO_PULLNONE */) {
 	if(pin_no != -1) {
 		gpio_configure(pin_no, mode);
-		//if(mode != GPIO_INPUT) {
-		//	gpio_configure_pull(pin_no, GPIO_PULLNONE);
-		//} else {
-			gpio_configure_pull(pin_no, pullMode);
-		//}
+        gpio_configure_pull(pin_no, pullMode);
 	}
 }
 GpioPin::operator bool() {

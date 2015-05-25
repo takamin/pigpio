@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#ifndef __MINGW32__
 #include <sys/mman.h>
+#else
+#include <mingw-mman/mman.h>
+#define O_SYNC 0
+#endif
 #include <unistd.h>
 #include "gpio.h"
 
-#ifdef __MINGW32__
-#define O_SYNC 0
-#endif
-
-/*  レジスタブロックの物理アドレス */
+/* register block phisical address */
 #define PERI_BASE     0x20000000
 #define GPIO_BASE     (PERI_BASE + 0x200000)
 #define BLOCK_SIZE    4096
