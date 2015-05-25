@@ -65,5 +65,12 @@ int main(int argc, char* argv[])
 		gpio_port_write(GPIO_DISP_PED_WAIT, test_output);
 		usleep(10000);
 	}
+	gpio_port_write(GPIO_LIGHT_CAR_BLUE, 0);
+	gpio_port_write(GPIO_LIGHT_CAR_YELLOW, 0);
+	gpio_port_write(GPIO_LIGHT_CAR_RED, 0);
+	gpio_port_write(GPIO_LIGHT_PED_WALK, 0);
+	gpio_port_write(GPIO_LIGHT_PED_STOP, 0);
+	gpio_port_write(GPIO_DISP_PED_PUSH, 0);
+	gpio_port_write(GPIO_DISP_PED_WAIT, 0);
 	return 0;
 }
