@@ -26,15 +26,21 @@
 static volatile int signaled = 0;
 static void handler(int sig)
 {
-	assert(sig == SIGINT || sig == SIGHUP || sig == SIGTERM);
+	assert(sig == SIGINT
+#ifndef __MINGW32__
+            || sig == SIGHUP
+#endif
+            || sig == SIGTERM);
 	signaled = sig;
 }
 
 int main(int argc, char* argv[])
 {
+#ifndef __MINGW32__
 	if (signal(SIGHUP, handler) == SIG_ERR) {
 		return 1;
 	}
+#endif
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return 2;
 	}
