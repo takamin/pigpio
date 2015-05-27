@@ -113,8 +113,8 @@ int main(int argc, char* argv[])
      */
     const struct option longopt[] = {
         {"help", no_argument, NULL, '?'},
-        {"daemonize", no_argument, NULL, 'd'},
-        {"kill", no_argument, NULL, 'k'},
+        {"start", no_argument, NULL, 'd'},
+        {"stop", no_argument, NULL, 'k'},
         {"pidfile", required_argument, NULL, 'p'},
         {NULL, 0, NULL, 0}
     };
@@ -141,10 +141,12 @@ int main(int argc, char* argv[])
     /**
      * オプションが指定されなかった場合にエラーを表示し終了
      */
+	/**************************************
     if (pid_file_path == NULL) {
-        printf("--pid-file required\n");
+        printf("--pidfile required\n");
         return -1;
     }
+	***************************************/
 
     if (flag == FLAG_KILL) {
         pid_file = fopen(pid_file_path, "r");
@@ -187,6 +189,7 @@ int main(int argc, char* argv[])
      * このプロセス（デーモン）の PID を取得し、
      * ファイルに PID を記録
      */
+	/****
     pid = getpid();
     pid_file = fopen(pid_file_path, "w+");
     if (pid_file != NULL) {
@@ -196,11 +199,14 @@ int main(int argc, char* argv[])
         syslog(LOG_ERR, "failed to record process id to file.\n");
         return -1;
     }
+	****/
 
 #ifndef __MINGW32__
+	/***
 	if (signal(SIGHUP, handler) == SIG_ERR) {
 		return 1;
 	}
+	***/
 #endif
 	if (signal(SIGINT, handler) == SIG_ERR) {
 		return 2;
