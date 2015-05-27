@@ -36,5 +36,5 @@ target_link_libraries(gpioOut8Bit pigpio ${LIBS_PIGPIO_DEPENDS})
 add_executable(gpioReadButton sample/gpioReadButton.cpp)
 target_link_libraries(gpioReadButton pigpio ${LIBS_PIGPIO_DEPENDS})
 
-add_executable(pedsignal pedsignal/main.c)
+add_executable(pedsignal pedsignal/main.c pedsignal/statemac.c)
 target_link_libraries(pedsignal pigpio ${LIBS_PIGPIO_DEPENDS})
