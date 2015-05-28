@@ -23,31 +23,41 @@
 #include "gpio.h"
 #include "gpio_port.h"
 
-static volatile int signaled = 0;
-static void handler(int sig)
-{
-	assert(sig == SIGINT
+#include <stdio.h>
+#include <getopt.h>
+#include <sys/types.h>
+
 #ifndef __MINGW32__
-            || sig == SIGHUP
+#include <sys/wait.h>
+#include <syslog.h>
 #endif
-            || sig == SIGTERM);
-	signaled = sig;
+
+#define FLAG_DAEMONIZE     1
+#define FLAG_KILL          2
+
+#ifdef __MINGW32__
+/**
+ * stub for MinGW
+ */
+#define LOG_PID 0
+#define LOG_DAEMON 0
+#define LOG_ERR 0
+#define LOG_INFO 0
+int openlog(const char* param0, int param1, int param2) {
+    return 0;
 }
-
-int main(int argc, char* argv[])
-{
-#ifndef __MINGW32__
-	if (signal(SIGHUP, handler) == SIG_ERR) {
-		return 1;
-	}
+int syslog(int logid, const char* msg) {
+    return 0;
+}
+int daemon(int chdir, int closehandles) {
+    return 0;
+}
 #endif
-	if (signal(SIGINT, handler) == SIG_ERR) {
-		return 2;
-	}
-	if (signal(SIGTERM, handler) == SIG_ERR) {
-		return 3;
-	}
 
+static volatile int signaled = 0;
+
+static int do_daemon( void )
+{
 	gpio_init();
 
 	GPIO_PORT* GPIO_LIGHT_CAR_BLUE = gpio_port_output(2);
@@ -78,5 +88,71 @@ int main(int argc, char* argv[])
 	gpio_port_write(GPIO_LIGHT_PED_STOP, 0);
 	gpio_port_write(GPIO_DISP_PED_PUSH, 0);
 	gpio_port_write(GPIO_DISP_PED_WAIT, 0);
+
 	return 0;
+}
+
+static void handler(int sig)
+{
+	assert(sig == SIGINT || sig == SIGTERM);
+	switch(sig) {
+		case SIGINT:
+			syslog(LOG_INFO, "SIGINT received.\n");
+			signaled = sig;
+			break;
+		case SIGTERM:
+			syslog(LOG_INFO, "SIGTERM received.\n");
+			signaled = sig;
+			break;
+		default:
+			syslog(LOG_ERR, "unknown signal received.\n");
+			break;
+	}
+}
+
+int main(int argc, char* argv[])
+{
+    const struct option longopt[] = {
+        {"daemon", no_argument, NULL, 'd'},
+        {NULL, 0, NULL, 0}
+    };
+    int opt;
+	int exit_code = 0;
+
+    openlog("daemon", LOG_PID, LOG_DAEMON);
+
+    while ((opt = getopt_long(argc, argv, "d", longopt, NULL)) != -1) {
+        switch (opt) {
+            case 'd':
+				if (daemon(0, 0) == -1) {
+					syslog(LOG_ERR, "failed to launch pedsignal.\n");
+					return 2;
+				}
+                break;
+            default:
+                break;
+        }
+    }
+
+    syslog(LOG_INFO, "pedsignal started.\n");
+
+#ifndef __MINGW32__
+	if (signal(SIGHUP, SIG_IGN) == SIG_ERR) {
+		syslog(LOG_ERR, "fail to ignore SIGHUP.\n");
+		exit_code = 1;
+	} else
+#endif
+	if (signal(SIGINT, handler) == SIG_ERR) {
+		syslog(LOG_ERR, "fail to setup SIGINT.\n");
+		exit_code = 2;
+	} else
+	if (signal(SIGTERM, handler) == SIG_ERR) {
+		syslog(LOG_ERR, "fail to setup SIGTERM.\n");
+		exit_code = 3;
+	} else {
+		exit_code = do_daemon();
+	}
+
+	syslog(LOG_INFO, "pedsignal stopped.\n");
+	return exit_code;
 }
