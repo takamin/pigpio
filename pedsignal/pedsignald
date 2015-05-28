@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Description of the service"
 NAME=pedsignal
 DAEMON=/usr/local/sbin/$NAME
-DAEMON_ARGS=""
+DAEMON_ARGS="--daemon"
 PIDFILE=/var/run/${NAME}d.pid
 SCRIPTNAME=/etc/init.d/${NAME}d
 
