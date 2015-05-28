@@ -19,22 +19,22 @@ endif()
 target_link_libraries(pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(write_gpio sample/write_gpio.cpp)
-target_link_libraries(write_gpio pigpio)
+target_link_libraries(write_gpio pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(read_gpio sample/read_gpio.cpp)
-target_link_libraries(read_gpio pigpio)
+target_link_libraries(read_gpio pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(read_gpio_pull sample/read_gpio_pull.cpp)
-target_link_libraries(read_gpio_pull pigpio)
+target_link_libraries(read_gpio_pull pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(numdisp sample/numdisp.cpp)
-target_link_libraries(numdisp pigpio)
+target_link_libraries(numdisp pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(gpioOut8Bit sample/gpioOut8Bit.cpp)
-target_link_libraries(gpioOut8Bit pigpio)
+target_link_libraries(gpioOut8Bit pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(gpioReadButton sample/gpioReadButton.cpp)
-target_link_libraries(gpioReadButton pigpio)
+target_link_libraries(gpioReadButton pigpio ${LIBS_PIGPIO_DEPENDS})
 
 add_executable(pedsignal pedsignal/main.c pedsignal/statemac.c)
-target_link_libraries(pedsignal pigpio)
+target_link_libraries(pedsignal pigpio ${LIBS_PIGPIO_DEPENDS})
