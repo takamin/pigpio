@@ -22,8 +22,8 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Description of the service"
 NAME=pedsignal
 DAEMON=/usr/local/sbin/$NAME
-DAEMON_ARGS="--daemon"
 PIDFILE=/var/run/${NAME}d.pid
+DAEMON_ARGS="--daemon --pidfile $PIDFILE"
 SCRIPTNAME=/etc/init.d/${NAME}d
 
 # Exit if the package is not installed

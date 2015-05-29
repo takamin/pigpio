@@ -114,23 +114,44 @@ int main(int argc, char* argv[])
 {
     const struct option longopt[] = {
         {"daemon", no_argument, NULL, 'd'},
+        {"pidfile", required_argument, NULL, 'p'},
         {NULL, 0, NULL, 0}
     };
     int opt;
 	int exit_code = 0;
+    const char* pidfilepath = 0;
+    int daemonize = 0;
 
     openlog("daemon", LOG_PID, LOG_DAEMON);
 
-    while ((opt = getopt_long(argc, argv, "d", longopt, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "dp:", longopt, NULL)) != -1) {
         switch (opt) {
             case 'd':
-				if (daemon(0, 0) == -1) {
-					syslog(LOG_ERR, "failed to launch pedsignal.\n");
-					return 2;
-				}
+                daemonize = 1;
+                break;
+            case 'p':
+                pidfilepath = optarg;
                 break;
             default:
                 break;
+        }
+    }
+
+    if(daemonize) {
+        if (daemon(0, 0) == -1) {
+            syslog(LOG_ERR, "failed to launch pedsignal.\n");
+            return 2;
+        }
+        if(pidfilepath) {
+            FILE* pidfile = fopen(pidfilepath, "w+");
+            if (pidfile) {
+                int pid = getpid();
+                fprintf(pidfile, "%d\n", pid);
+                fclose(pidfile);
+            } else {
+                syslog(LOG_ERR, "failed to record process id to file.\n");
+                return 2;
+            }
         }
     }
 
@@ -139,7 +160,7 @@ int main(int argc, char* argv[])
 #ifndef __MINGW32__
 	if (signal(SIGHUP, SIG_IGN) == SIG_ERR) {
 		syslog(LOG_ERR, "fail to ignore SIGHUP.\n");
-		exit_code = 1;
+		exit_code = 2;
 	} else
 #endif
 	if (signal(SIGINT, handler) == SIG_ERR) {
@@ -148,7 +169,7 @@ int main(int argc, char* argv[])
 	} else
 	if (signal(SIGTERM, handler) == SIG_ERR) {
 		syslog(LOG_ERR, "fail to setup SIGTERM.\n");
-		exit_code = 3;
+		exit_code = 2;
 	} else {
 		exit_code = do_daemon();
 	}
