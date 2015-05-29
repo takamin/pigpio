@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include "gpio.h"
 #include "gpio_port.h"
+#include "statemac.h"
 
 #include <stdio.h>
 #include <getopt.h>
@@ -56,20 +57,56 @@ int daemon(int chdir, int closehandles) {
 
 static volatile int signaled = 0;
 
+GPIO_PORT* GPIO_LIGHT_CAR_BLUE = 0;
+GPIO_PORT* GPIO_LIGHT_CAR_YELLOW = 0;
+GPIO_PORT* GPIO_LIGHT_CAR_RED = 0;
+GPIO_PORT* GPIO_LIGHT_PED_WALK = 0;
+GPIO_PORT* GPIO_LIGHT_PED_STOP = 0;
+GPIO_PORT* GPIO_DISP_PED_PUSH = 0;
+GPIO_PORT* GPIO_DISP_PED_WAIT = 0;
+GPIO_PORT* GPIO_PED_BUTTON = 0;
+
+static void state1_enter(TRANSTATE* state) { }
+static void state1_run(TRANSTATE* state)
+{
+	int button_state = gpio_port_read(GPIO_PED_BUTTON);
+	int test_output = (button_state == 0 ? 1 : 0);
+	gpio_port_write(GPIO_LIGHT_CAR_BLUE, test_output);
+	gpio_port_write(GPIO_LIGHT_CAR_YELLOW, test_output);
+	gpio_port_write(GPIO_LIGHT_CAR_RED, test_output);
+	gpio_port_write(GPIO_LIGHT_PED_WALK, test_output);
+	gpio_port_write(GPIO_LIGHT_PED_STOP, test_output);
+	gpio_port_write(GPIO_DISP_PED_PUSH, test_output);
+	gpio_port_write(GPIO_DISP_PED_WAIT, test_output);
+}
+static void state1_leave(TRANSTATE* state) { }
 static int do_daemon( void )
 {
+	STATEMAC smac;
+	TRANSTATE states[] = {
+		{
+			0,
+			state1_enter,
+			state1_run,
+			state1_leave,
+		},
+	};
+	statemac_init(&smac, states, sizeof(states)/sizeof(states[0]));
+
 	gpio_init();
 
-	GPIO_PORT* GPIO_LIGHT_CAR_BLUE = gpio_port_output(2);
-	GPIO_PORT* GPIO_LIGHT_CAR_YELLOW = gpio_port_output(3);
-	GPIO_PORT* GPIO_LIGHT_CAR_RED = gpio_port_output(4);
-	GPIO_PORT* GPIO_LIGHT_PED_WALK = gpio_port_output(14);
-	GPIO_PORT* GPIO_LIGHT_PED_STOP = gpio_port_output(15);
-	GPIO_PORT* GPIO_DISP_PED_PUSH = gpio_port_output(17);
-	GPIO_PORT* GPIO_DISP_PED_WAIT = gpio_port_output(18);
-	GPIO_PORT* GPIO_PED_BUTTON = gpio_port_input_pullup(27);
+	GPIO_LIGHT_CAR_BLUE = gpio_port_output(2);
+	GPIO_LIGHT_CAR_YELLOW = gpio_port_output(3);
+	GPIO_LIGHT_CAR_RED = gpio_port_output(4);
+	GPIO_LIGHT_PED_WALK = gpio_port_output(14);
+	GPIO_LIGHT_PED_STOP = gpio_port_output(15);
+	GPIO_DISP_PED_PUSH = gpio_port_output(17);
+	GPIO_DISP_PED_WAIT = gpio_port_output(18);
+	GPIO_PED_BUTTON = gpio_port_input_pullup(27);
 	
 	while(!signaled) {
+		statemac_run(&smac);
+		/***
 		int button_state = gpio_port_read(GPIO_PED_BUTTON);
 		int test_output = (button_state == 0 ? 1 : 0);
 		gpio_port_write(GPIO_LIGHT_CAR_BLUE, test_output);
@@ -79,6 +116,7 @@ static int do_daemon( void )
 		gpio_port_write(GPIO_LIGHT_PED_STOP, test_output);
 		gpio_port_write(GPIO_DISP_PED_PUSH, test_output);
 		gpio_port_write(GPIO_DISP_PED_WAIT, test_output);
+		***/
 		usleep(10000);
 	}
 	gpio_port_write(GPIO_LIGHT_CAR_BLUE, 0);
