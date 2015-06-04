@@ -1,18 +1,12 @@
-/*!
- * flag that the process running as daemon.
- * This is same to damonize's return value.
- */
-extern int daemonized;
+#ifdef __cplusplus__
+extern "C" {
+#endif
 
 /*!
- * daemonize a current process.
- * this calls daemon, initialize syslog and write daemon's pid
- * to the file specified by pidfilepath.
+ * create a daemon process and write its pid to the file.
  *
- * @param [in] pidfilepath      A file pathname to be written
- *                              the daemon's process id.
- *                              If NULL is specified, the file
- *                              not created.
+ * @param [in] pidfilepath      The pid file pathname.
+ *                              If NULL, it will never record.
  * @param [in] syslog_ident     syslog ident.
  * @param [in] syslog_option    syslog option.
  * @param [in] syslog_facility  syslog facility.
@@ -49,3 +43,6 @@ void dlog(int priority, const char* format, ...);
 #define LOG_INFO 0
 #endif
 
+#ifdef __cplusplus__
+}
+#endif

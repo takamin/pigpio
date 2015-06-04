@@ -1,48 +1,28 @@
-#include <assert.h>
-#include <signal.h>
-#include <unistd.h>
-#include "daemonize.h"
-#include "gpio.h"
-#include "gpio_port.h"
-
 #include <stdio.h>
+#include <unistd.h>
 #include <stdarg.h>
-#include <getopt.h>
-#include <sys/types.h>
-
+#include <signal.h>
 #ifndef __MINGW32__
-#include <sys/wait.h>
 #include <syslog.h>
+#else
+int openlog(const char *ident, int option, int facility) { return 0; }
+void vsyslog(int, const char* f, ...) { va_list a; va_start(a, f); va_end(a); }
+int daemon(int nochdir, int noclosehandles) { return 0; }
 #endif
+#include "daemonize.h"
 
-int daemonized = 0;
-
-#ifdef __MINGW32__
-int openlog(const char *ident, int option, int facility)
-{
-    fprintf(stderr, "MinGW ignores : openlog(ident=\"%s\", option=0x%08X, facility=0x%08X)\n", ident, option, facility);
-    return 0;
-}
-int daemon(int nochdir, int noclosehandles)
-{
-    fprintf(stderr, "MinGW ignores : daemon(nochdir=%d, noclosehandles=%d)", nochdir, noclosehandles);
-    return 0;
-}
-#endif
+/*!
+ * flag that the process running as daemon.
+ * This is same to damonize's return value.
+ */
+static int daemonized = 0;
 
 void dlog(int priority, const char* format, ...)
 {
     va_list vargs;
-    
-
     va_start(vargs, format);
     if(daemonized) {
-#ifdef __MINGW32__
-        fprintf(stderr, "priority=%d : ", priority);
-        vfprintf(stderr, format, vargs);
-#else
         vsyslog(priority, format, vargs);
-#endif
     } else {
         fprintf(stderr, "priority=%d : ", priority);
         vfprintf(stderr, format, vargs);
@@ -50,25 +30,36 @@ void dlog(int priority, const char* format, ...)
     va_end(vargs);
 }
 
-int daemonize(const char* pidfilepath, const char *syslog_ident, int syslog_option, int syslog_facility)
+int daemonize(
+	const char* pidfilepath,
+	const char *syslog_ident,
+	int syslog_option,
+	int syslog_facility)
 {
-    if (daemon(0, 0) == -1) {
-        fprintf(stderr, "daemonize() : failed to daemonize.\n");
-    } else {
-        daemonized = 1;
-        if(syslog_ident) {
-            openlog(syslog_ident, syslog_option, syslog_facility);
-        }
-        if(pidfilepath) {
-            FILE* pidfile = fopen(pidfilepath, "w+");
-            if (pidfile) {
-                int pid = getpid();
-                fprintf(pidfile, "%d\n", pid);
-                fclose(pidfile);
-            } else {
-                dlog(LOG_ERR, "daemonize() : failed to record process id to a file.\n");
-            }
-        }
-    }
+	daemonized = 0; /* initialize */
+
+    if (daemon(0, 0) != -1) {
+
+	   	/* success to daemonize. */
+		daemonized = 1;
+
+		/* open syslog */
+		if(syslog_ident) {
+			openlog(syslog_ident, syslog_option, syslog_facility);
+		}
+
+		/* write daemon pid to the file */
+		if(pidfilepath) {
+			FILE* pidfile = fopen(pidfilepath, "w+");
+			if (pidfile) {
+				int pid = getpid();
+				fprintf(pidfile, "%d\n", pid);
+				fclose(pidfile);
+			} else {
+				dlog(LOG_ERR,
+			   		"daemonize() : failed to write pid.\n");
+			}
+		}
+	}
 	return daemonized;
 }
