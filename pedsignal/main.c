@@ -30,7 +30,7 @@ int main(int argc, char* argv[], char* envp[])
         }
     }
     if(opt_daemonize) {
-        if(!daemonize(pidfilepath, "daemon", LOG_PID, LOG_DAEMON)) {
+        if(!daemonize(0, 0, pidfilepath, "daemon", LOG_PID, LOG_DAEMON)) {
 			fprintf(stderr, "failed to daemonize.\n");
 			return 2;
 		}

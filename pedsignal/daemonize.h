@@ -7,6 +7,8 @@ extern "C" {
  *
  * @param [in] pidfilepath      The pid file pathname.
  *                              If NULL, it will never record.
+ * @param [in] nochdir          set NON-ZERO to prevent to change dir to root.
+ * @param [in] noclosehandles   set NON-ZERO to prevent to close handles.
  * @param [in] syslog_ident     syslog ident.
  * @param [in] syslog_option    syslog option.
  * @param [in] syslog_facility  syslog facility.
@@ -17,6 +19,7 @@ extern "C" {
  *                              was not created.
  */
 int daemonize(
+        int nochdir, int noclosehandles,
         const char* pidfilepath,
         const char *syslog_ident,
         int syslog_option,
