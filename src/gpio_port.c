@@ -19,9 +19,7 @@ GPIO_PORT* gpio_port(int portnum, int dir, int pullup)
 	port->dir = dir;
 	port->pullup = pullup;
 	gpio_configure(port->portnum, port->dir);
-	if(port->dir == GPIO_INPUT) {
-		gpio_configure_pull(port->portnum, port->pullup);
-	}
+    gpio_configure_pull(port->portnum, port->pullup);
 	return port;
 }
 GPIO_PORT* gpio_port_output(int portnum)

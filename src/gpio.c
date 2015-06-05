@@ -41,24 +41,30 @@ void gpio_init()
     }
 }
 
-void gpio_configure(int pin, int mode)
+void gpio_configure(int port, int mode)
 {
-    /*  レジスタ番号（index）と３ビットマスクを生成 */
-    int index = pin / 10;
-	int shift_bits = ((pin % 10) * 3);
+    /*
+     * GPIO_BASE
+     *              9   8   7   6   5   4   3   2   1   0
+     * GPIO_0?: XX 000 000 000 XXX XXX 000 000 000 XXX XXX
+     * GPIO_1?: XX XXX 000 000 XXX 000 000 XXX XXX 000 000
+     * GPIO_2?: XX 000 000 000 XXX 000 000 000 000 XXX XXX
+     * GPIO_3?: XX XXX XXX XXX XXX XXX XXX XXX XXX 000 000
+     */
+    int index = port / 10;
+	int shift_bits = ((port % 10) * 3);
     unsigned int mask = ~(0x7 << shift_bits);
 
-    /*  GPFSEL0/1 の該当する FSEL (3bit) のみを書き換え */
     gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << shift_bits);
 }
-void gpio_configure_pull(int pin, int pullmode)
+void gpio_configure_pull(int port, int pullmode)
 {
     /* write pullup mode (2bits) NONE / DOWN / UP */
     gpio[GPPUD] = pullmode & 0x3;
 
     /* set clock status (wait needed) */
     usleep(1);
-    gpio[GPPUDCLK0] = 0x1 << pin;
+    gpio[GPPUDCLK0] = 0x1 << port;
     usleep(1);
 
     /* clear pull-up mode and clock status */
@@ -66,25 +72,25 @@ void gpio_configure_pull(int pin, int pullmode)
     gpio[38] = 0;
 }
 
-void gpio_set(int pin)
+void gpio_set(int port)
 {
-    gpio[GPSET0] = 0x1 << pin;
+    gpio[GPSET0] = 0x1 << port;
 }
-void gpio_clear(int pin)
+void gpio_clear(int port)
 {
-    gpio[GPCLR0] = 0x1 << pin;
+    gpio[GPCLR0] = 0x1 << port;
 }
 
 
-void gpio_write(int pin, int value)
+void gpio_write(int port, int value)
 {
     if(value) {
-        gpio_set(pin);
+        gpio_set(port);
     } else {
-        gpio_clear(pin);
+        gpio_clear(port);
     }
 }
-int gpio_read(int pin)
+int gpio_read(int port)
 {
-    return (gpio[GPLEV0] & (0x1 << pin)) != 0;
+    return (gpio[GPLEV0] & (0x1 << port)) != 0;
 }
