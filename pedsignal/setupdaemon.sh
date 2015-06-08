@@ -12,11 +12,6 @@ sudo chmod 755 ${DSCR}
 
 sudo cp ../build/pedsignal ${DEXE}
 sudo chown root.root ${DEXE}
-sudo chmod 4755 ${DEXE}
-
-sudo touch ${PIDF}
-sudo chown root.root ${PIDF}
-sudo chmod 644 ${PIDF}
 
 sudo update-rc.d ${NAME}d defaults
 
