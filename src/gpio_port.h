@@ -1,4 +1,4 @@
-#ifdef __cplusplus__
+#ifdef __cplusplus
 extern "C" { 
 #endif
 
@@ -17,6 +17,6 @@ GPIO_PORT* gpio_port_input_pullup(int portnum);
 void gpio_port_write(GPIO_PORT* port, int value);
 int gpio_port_read(GPIO_PORT* port);
 
-#ifdef __cplusplus__
+#ifdef __cplusplus
 }
 #endif

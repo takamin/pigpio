@@ -17,7 +17,7 @@
 #define GPIO_PULLDOWN 0x1
 #define GPIO_PULLUP   0x2
 
-#ifdef __cplusplus__
+#ifdef __cplusplus
 extern "C" { 
 #endif
 
@@ -79,6 +79,6 @@ void gpio_write(int port, int value);
  */
 int gpio_read(int port);
 
-#ifdef __cplusplus__
+#ifdef __cplusplus
 }
 #endif
