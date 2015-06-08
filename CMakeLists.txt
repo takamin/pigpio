@@ -8,7 +8,7 @@ set(LIBSRC
 	src/Gpio.cpp)
 
 include_directories( . src )
-add_library(pigpio SHARED ${LIBSRC})
+add_library(pigpio ${LIBSRC})
 
 add_executable(write_gpio sample/write_gpio.cpp)
 target_link_libraries(write_gpio pigpio)
