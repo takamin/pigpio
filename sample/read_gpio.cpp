@@ -1,91 +1,42 @@
 #include <stdio.h>
-#include <iostream>
-#include <pthread.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
-#include "Gpio.hpp"
 
-using namespace std;
-class GpioButton {
-public:
-	GpioButton();
-	virtual ~GpioButton();
-	void setPort(GpioPin& port);
-	void setFixDuration(int count);
-	void updateState();
-	bool isStateFixed() const;
-	bool getState() const;
-private:
-	GpioPin* port;
-	int fix_duration_count;
-	int duration_count;
-	bool last_raw_state;
-	bool state;
-	bool unfixed_state;
-	bool state_fixed;
-};
-
-void* watch_button_thread(void* args) {
-	GpioButton* btn = (GpioButton*)args;
-	while(true) {
-		btn[0].updateState();
-		btn[1].updateState();
-        usleep(10000);
-	}
-}
-
-int main ()
+#include "gpio.h"
+int main (int argc, char* argv[])
 {
-	RaspiGpio gpio;
-	GpioButton btn[2];
-	btn[0].setPort(gpio[7]);
-	btn[1].setPort(gpio[8]);
-	pthread_t thread;
-	pthread_create(&thread, NULL, watch_button_thread, btn);
+	int port;
+	int pullup;
+	int value;
+
+    gpio_init();
+	if(argc < 1) {
+		fprintf(stderr, "read_gpio <port> [<pullup>=1]\n");
+		exit(-1);
+	}
+	port = atoi(argv[1]);
+	if(port < 0 || 31 < port) {
+		fprintf(stderr, "error: port range 0 .. 31\n");
+		exit(-1);
+	}
+	if(argc > 2) {
+		pullup = atoi(argv[2]);
+		if(pullup != 0 && pullup != 1) {
+			fprintf(stderr,
+				"ERROR: invalid pullup (%d), 0 or 1 is available.\n", pullup);
+			exit(-1);
+		}
+	} else {
+		pullup = 1;
+	}
+	gpio_configure(port, GPIO_INPUT);
+	gpio_configure_pull(port, (pullup ? GPIO_PULLUP : GPIO_PULLDOWN));
     while (1) {
-        //btn1.updateState();
-		//btn2.updateState();
-		bool sw1 = btn[0].getState();
-		bool sw2 = btn[1].getState();
-		cerr << "sw1:" << sw1 << ", sw2:" << sw2 << endl;
-        usleep(1);
+        value = gpio_read(port);
+        printf("input(%d): %d\n", port, value);
+        usleep(500000); // 0.5[s]
     }
     return 0;
 }
 
-GpioButton::GpioButton()
-: port(0), fix_duration_count(5),duration_count(0),
-last_raw_state(false), state(false), state_fixed(true)
-{
-}
-GpioButton::~GpioButton()
-{
-}
-void GpioButton::setPort(GpioPin& port) {
-	this->port = &port;
-	this->port->setMode(GPIO_INPUT);
-}
-void GpioButton::setFixDuration(int count) {
-	this->fix_duration_count = count;
-}
-void GpioButton::updateState() {
-	bool raw_state = *port;
-	if(raw_state == last_raw_state) {
-		if(!state_fixed) {
-			duration_count++;
-			if(duration_count > fix_duration_count) {
-				state_fixed = true;
-				state = raw_state;
-			}
-		}
-	} else {
-		state_fixed = false;
-		duration_count = 0;
-	}
-	last_raw_state = raw_state;
-}
-bool GpioButton::isStateFixed() const {
-	return state_fixed;
-}
-bool GpioButton::getState() const {
-	return state;
-}
